@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -38,6 +39,10 @@ public class Unit : MonoBehaviour
     public UnityEvent onDeSelected;
 
     /// <summary>
+    /// 当前单位是否正被选中
+    /// </summary>
+    public bool BeSelected => beSelected;
+    /// <summary>
     /// 是否可被选中
     /// </summary>
     public bool Selectable => selectable;
@@ -49,6 +54,11 @@ public class Unit : MonoBehaviour
     /// 是否可被框选中
     /// </summary>
     public bool RangeSelectable => selectable && rangeSelectable;
+
+    private void Awake()
+    {
+        beSelectedTip.SetActive(false);
+    }
 
     /// <summary>
     /// 被选中时动作

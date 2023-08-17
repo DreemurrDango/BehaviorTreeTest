@@ -103,6 +103,7 @@
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Actions\StopBehaviorTree.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Transform\GetLocalScale.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Composites\PrioritySelector.cs" />
+    <Compile Include="Assets\Scripts\Utilities\EventHandler.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Animator\StopPlayback.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Math\IntComparison.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Rigidbody\UseGravity.cs" />
@@ -173,10 +174,12 @@
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Animator\SetLayerWeight.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Physics\Raycast.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\SharedVariables\CompareSharedVector2.cs" />
+    <Compile Include="Assets\Scripts\Utilities\Constant.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Rigidbody\GetDrag.cs" />
     <Compile Include="Assets\Behavior Designer\Integrations\DOTween\Tasks\DOScaleZ.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Animator\WaitForState.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\PlayerPrefs\GetInt.cs" />
+    <Compile Include="Assets\Scripts\Utilities\Singleton.cs" />
     <Compile Include="Assets\Scripts\Attribute\EnumName.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Rigidbody2D\SetGravityScale.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Rigidbody\GetFreezeRotation.cs" />
@@ -243,6 +246,7 @@
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Collider\SetEnabled.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Transform\SetLocalScale.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Transform\GetEulerAngles.cs" />
+    <Compile Include="Assets\Scenes\ScriptObjects\UnitSettingSO.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Transform\GetParent.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Animator\StartPlayback.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Vector3\Dot.cs" />
@@ -328,6 +332,7 @@
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Rigidbody\GetRotation.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Animator\GetApplyRootMotion.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\SharedVariables\CompareSharedFloat.cs" />
+    <Compile Include="Assets\Scripts\RTS\UnitManager.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Transform\GetForwardVector.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Animation\SetAnimatePhysics.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Light\GetShadowStrength.cs" />
@@ -556,6 +561,7 @@
     <Compile Include="Assets\Behavior Designer Samples\RTS\Scripts\Tasks\IsAlive.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Variables\SharedVector2.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\String\Replace.cs" />
+    <Compile Include="Assets\Scripts\Utilities\Enums.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\AudioSource\GetSpread.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\BoxCollider\GetCenter.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\AudioSource\IsPlaying.cs" />
@@ -665,14 +671,9 @@
     <Compile Include="Assets\Behavior Designer Samples\CTF\Scripts\Tasks\Defend.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Transform\LookAt.cs" />
     <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\Vector2\ClampMagnitude.cs" />
-    <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\NavMeshAgent\IsStopped.cs" />
-    <Compile Include="Assets\Scenes\ScriptObjects\UnitSettingSO.cs" />
-    <Compile Include="Assets\Scripts\RTS\UnitManager.cs" />
-    <Compile Include="Assets\Scripts\Utilities\Singleton.cs" />
-    <Compile Include="Assets\Scripts\Utilities\Enums.cs" />
-    <Compile Include="Assets\Scripts\Utilities\Constant.cs" />
     <Compile Include="Assets\Scripts\Utilities\DataCollection.cs" />
-    <Compile Include="Assets\Scripts\Utilities\EventHandler.cs" />
+    <Compile Include="Assets\Behavior Designer\Runtime\Tasks\Unity\NavMeshAgent\IsStopped.cs" />
+    <Compile Include="Assets\Scripts\RTS\InputManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

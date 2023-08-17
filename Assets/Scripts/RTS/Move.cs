@@ -28,7 +28,7 @@ public class Move : MonoBehaviour
     /// </summary>
     private Unit unit;
     /// <summary>
-    /// 该单位上应挂在的寻路代理组件
+    /// 该单位上应挂载的寻路代理组件
     /// </summary>
     private NavMeshAgent agent;
     [DisplayOnly]
@@ -36,20 +36,32 @@ public class Move : MonoBehaviour
     private GameObject aimShowGO;
 
     /// <summary>
-    /// 行动速度
+    /// 该单位上应挂载的寻路代理组件
     /// </summary>
-    private float speed;
-    /// <summary>
-    /// 转身速度
-    /// </summary>
-    private float rotateSpeed; 
+    public NavMeshAgent NavMeshAgent=> agent;
 
-    private void Start()
+    private void Awake()
     {
         unit = GetComponent<Unit>();
         agent = GetComponent<NavMeshAgent>();
+    }
+
+    private void Start()
+    {
+        movePathRender.enabled = false;
         unit.onSelected.AddListener(OnSelected);
         unit.onDeSelected.AddListener(OnDeSelected);
+    }
+
+    private void Update()
+    {
+        if(aimShowGO != null && unit.BeSelected) 
+        {
+            Vector3 nowPos = movePathRender.transform.position, aimPos = aimShowGO.transform.position;
+            nowPos.y = aimPos.y = 0.1f;
+            movePathRender.SetPosition(0, nowPos);
+            movePathRender.SetPosition(1, aimPos);
+        }
     }
 
     /// <summary>
@@ -58,7 +70,11 @@ public class Move : MonoBehaviour
     /// <param name="aimPos">目标移动点</param>
     public void SetAimPos(Vector3 aimPos)
     {
-        aimShowGO = Instantiate(UnitManager.Instance.aimMovePrefab);
+        aimShowGO = Instantiate(UnitManager.Instance.aimMovePrefab, UnitManager.Instance.worldMoveRootT);
+        aimPos.y += 0.05f;
+        aimShowGO.transform.position = aimPos;
+        aimShowGO.SetActive(unit.BeSelected);
+        movePathRender.enabled = unit.BeSelected;
     }
 
     /// <summary>
@@ -66,7 +82,11 @@ public class Move : MonoBehaviour
     /// </summary>
     private void OnSelected()
     {
-
+        if(aimShowGO != null)
+        {
+            aimShowGO.SetActive(true);
+            movePathRender.enabled = true;
+        }
     }
 
     /// <summary>
@@ -74,7 +94,11 @@ public class Move : MonoBehaviour
     /// </summary>
     private void OnDeSelected()
     {
-
+        if (aimShowGO != null)
+        {
+            aimShowGO.SetActive(false);
+            movePathRender.enabled = false;
+        }
     }
 }
 
@@ -82,154 +106,92 @@ public class Move : MonoBehaviour
 public class MoveTo : Action
 {
     [Tooltip("移动速度")]
-    public SharedFloat moveSpeed;
+    public SharedFloat speed = 10;
     [Tooltip("旋转速度")]
-    public SharedFloat rotationSpeed;
-    [Tooltip("true if the nav agent's rotation should end with the same rotation as the target")]
-    public bool rotateToTarget;
-    [Tooltip("avoid running into objects who are on defense. Note that this probabily should be made into a tag instead but to prevent having to update project files " +
-             "with these demos we are doing it this way")]
-    public bool avoidDefeneUnits;
-    [Tooltip("固定目标位置")]
+    public SharedFloat angularSpeed = 120;
+    [Tooltip("完成达到任务需要达到的，与目标的最小距离")]
+    public SharedFloat arriveDistance = 0.2f;
+    [Tooltip("当前正在追踪的目标")]
+    public SharedGameObject target;
+    [Tooltip("当前正在追踪的目标点位置")]
     public SharedVector3 targetPosition;
-    [Tooltip("目标形变")]
-    public SharedTransform target;
 
-    // remember the magnitude within the previous frame so we know if the target respawns and we no longer need to seek the target
-    private float prevMagnitude = Mathf.Infinity;
-    // true if the target was obtained from the targets position
-    private bool staticPosition = false;
-    // true if the nav agent is currently on an alternate path to avoid the defensive object
-    private bool alternatePath = false;
-
+    /// <summary>
+    /// 必须的移动功能组件
+    /// </summary>
+    private Move move;
+    /// <summary>
+    /// 寻路代理
+    /// </summary>
     private NavMeshAgent navMeshAgent;
+
+    /// <summary>
+    /// 当前的目标点
+    /// </summary>
+    private Vector3 TargetPos { get => target.Value != null ? target.Value.transform.position : targetPosition.Value; }
+
+    /// <summary>
+    /// 判断代理是否达到了目标位置
+    /// </summary>
+    /// <returns>返回当前代理是否达到了目标位置</returns>
+    private bool HasArrived
+    {
+        get => (navMeshAgent.pathPending ? float.PositiveInfinity : navMeshAgent.remainingDistance) <= arriveDistance.Value;
+    }
+
+
+    /// <summary>
+    /// 设置新的目标点
+    /// </summary>
+    /// <param name="destination">设置目标点位置</param>
+    /// <returns>返回寻路代理是否目标设置成功</returns>
+    private bool SetDestination(Vector3 destination)
+    {
+        navMeshAgent.isStopped = false;
+        return navMeshAgent.SetDestination(destination);
+    }
+
+    /// <summary>
+    /// 停止寻路
+    /// </summary>
+    private void Stop()
+    {
+        if (navMeshAgent.hasPath) navMeshAgent.isStopped = true;
+    }
 
     public override void OnAwake()
     {
-        // cache for quick lookup
-        navMeshAgent = gameObject.GetComponent<NavMeshAgent>();
-
-        // set the speed and angular speed
-        navMeshAgent.speed = moveSpeed.Value;
-        navMeshAgent.angularSpeed = rotationSpeed.Value;
+        move = GetComponent<Move>();
+        navMeshAgent = move.NavMeshAgent;
     }
 
     public override void OnStart()
     {
-        navMeshAgent.enabled = true;
+        navMeshAgent.speed = speed.Value;
+        navMeshAgent.angularSpeed = angularSpeed.Value; 
+        navMeshAgent.isStopped = false;
 
-        // use the position if it is not zero
-        if (targetPosition.Value != Vector3.zero)
-        {
-            staticPosition = true;
-            navMeshAgent.destination = targetPosition.Value;
-        }
-
-        // set the destination if it hasn't already been set with a static position
-        if (staticPosition == false)
-        {
-            navMeshAgent.destination = target.Value.position;
-        }
+        if(SetDestination(TargetPos))move.SetAimPos(TargetPos) ;
     }
 
-    // Move towards the destination. Return success once we have reached the destination. Return failure if the destination has respawned and we no longer should be seeking it.
-    // Will return running if we are currently seeking
+    /// <summary>
+    /// 达到目标位置时任务完成，否则则更新目标位置并持续运行
+    /// </summary>
+    /// <returns></returns>
     public override TaskStatus OnUpdate()
     {
-        // use the nav agent's destination position if we are on an alternate path or the target is null. We are using an alternate path if the previous path would have collided with
-        // an object on defense. target will be null when we are seeking a position specified by the position variable
-        var targetPosition = (alternatePath || target.Value == null ? navMeshAgent.destination : target.Value.position);
-        targetPosition.y = navMeshAgent.destination.y; // ignore y
-
-        // we can only arrive if the path isn't pending
-        if (!navMeshAgent.pathPending)
-        {
-            var thisPosition = transform.position;
-            thisPosition.y = targetPosition.y;
-            // If the magnitude is less than the arrive magnitude then we have arrived at the destination
-            if (Vector3.SqrMagnitude(thisPosition - navMeshAgent.destination) < SampleConstants.ArriveMagnitude)
-            {
-                // If we arrived from an alternate path then switch back to the regular path
-                if (alternatePath)
-                {
-                    alternatePath = false;
-                    targetPosition = target.Value.position;
-                }
-                else
-                {
-                    // return success if we don't need to rotate to the target or we are already at the target's rotation
-                    if (!rotateToTarget || transform.rotation == target.Value.rotation)
-                    {
-                        return TaskStatus.Success;
-                    }
-                    // not done yet. still need to rotate
-                    transform.rotation = Quaternion.RotateTowards(transform.rotation, target.Value.rotation, rotationSpeed.Value * Time.deltaTime);
-                }
-            }
-
-            // fail if the target moved too quickly in one frame. This happens after the target has been caught and respawns
-            float distance;
-            if (prevMagnitude * 2 < (distance = Vector3.SqrMagnitude(thisPosition - targetPosition)))
-            {
-                return TaskStatus.Failure;
-            }
-            prevMagnitude = distance;
-        }
-
-        // try not to head directly for a defensive object
-        RaycastHit hit;
-        Vector3 hitPoint;
-        if (avoidDefeneUnits && (rayCollision(transform.position - transform.right, targetPosition, out hit) ||
-                                            rayCollision(transform.position + transform.right, targetPosition, out hit)))
-        {
-            // looks like an object is within the path. Avoid the object by setting a new destination towards the right of the object that we would have hit
-            hitPoint = hit.point + transform.right * 5;
-            hitPoint.y = transform.position.y;
-            navMeshAgent.destination = hitPoint;
-            // The avoid object may still be in the way even though we moved to the right of the object. If this is the case then move to the left and hope that works
-            if (rayCollision(transform.position, navMeshAgent.destination, out hit))
-            {
-                hitPoint = hit.point - transform.right * 5;
-                hitPoint.y = transform.position.y;
-                navMeshAgent.destination = hitPoint;
-            }
-
-            // remember that we are taking an alternate path to prevent the agent from jittering back and forth
-            alternatePath = true;
-            var thisPosition = transform.position;
-            thisPosition.y = hitPoint.y;
-            prevMagnitude = Vector3.SqrMagnitude(thisPosition - hitPoint);
-        }
-        else if (navMeshAgent.destination != targetPosition)
-        {
-            // the target position has changed since we last set the destination. Update the destination
-            navMeshAgent.destination = targetPosition;
-        }
-
+        if (HasArrived) return TaskStatus.Success;
+        SetDestination(TargetPos);
         return TaskStatus.Running;
     }
 
-    public override void OnEnd()
-    {
-        // reset the variables and disable the nav mesh agent when the task ends
-        alternatePath = false;
-        prevMagnitude = Mathf.Infinity;
+    /// <summary>
+    /// 任务被中断结束时停止寻路
+    /// </summary>
+    public override void OnEnd() => Stop();
 
-        navMeshAgent.enabled = false;
-    }
-
-    // cast a ray between startPosition and targetPosition. Return true if a defensive object was hit
-    private bool rayCollision(Vector3 startPosition, Vector3 targetPosition, out RaycastHit hit)
-    {
-        if (avoidDefeneUnits && Physics.Raycast(startPosition, targetPosition - startPosition, out hit, Mathf.Infinity))
-        {
-            NPC npc = null;
-            if ((npc = hit.collider.GetComponent<NPC>()) != null)
-            {
-                return !npc.IsOffense;
-            }
-        }
-        hit = new RaycastHit();
-        return false;
-    }
+    /// <summary>
+    /// 任务完成时停止寻路
+    /// </summary>
+    public override void OnBehaviorComplete() => Stop();
 }

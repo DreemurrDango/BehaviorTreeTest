@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 使用LineRender绘制扇形
+/// </summary>
 public class DrawFanShape : MonoBehaviour
 {
     public int angle;
